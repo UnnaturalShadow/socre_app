@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/game_state.dart';
 import '../utils/sound_manager.dart';
+import 'score_page.dart'; // Import ScorePage directly
 
 class SetupPage extends StatefulWidget {
   const SetupPage({super.key});
@@ -86,7 +87,6 @@ class _SetupPageState extends State<SetupPage> {
             ),
             const SizedBox(height: 10),
 
-            // Player name fields
             ...List.generate(
               numPlayers,
                   (index) => Padding(
@@ -118,10 +118,12 @@ class _SetupPageState extends State<SetupPage> {
                 final game = GameState(totalRounds: numRounds);
                 game.startNewGame(playerNames, numRounds);
 
-                Navigator.pushNamed(
+                // Navigate directly using MaterialPageRoute
+                Navigator.push(
                   context,
-                  '/score',
-                  arguments: game,
+                  MaterialPageRoute(
+                    builder: (context) => ScorePage(game: game),
+                  ),
                 );
               },
               child: const Padding(

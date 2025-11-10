@@ -9,11 +9,12 @@ class LeaderboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sorted = ScoreLogic.getLeaderboard(game.players);
+    final sortedPlayers = ScoreLogic.getLeaderboard(game.players);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Final Scores'),
+        automaticallyImplyLeading: false, // Removes default back button
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -25,14 +26,24 @@ class LeaderboardPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
-                itemCount: sorted.length,
+              child: ListView.separated(
+                itemCount: sortedPlayers.length,
+                separatorBuilder: (_, __) => const Divider(),
                 itemBuilder: (context, index) {
-                  final p = sorted[index];
+                  final player = sortedPlayers[index];
                   return ListTile(
-                    leading: Text('#${index + 1}'),
-                    title: Text(p.name),
-                    trailing: Text('${p.totalScore} pts'),
+                    leading: CircleAvatar(
+                      child: Text('${index + 1}'),
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    ),
+                    title: Text(
+                      player.name,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                    ),
+                    trailing: Text(
+                      '${player.totalScore} pts',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
                   );
                 },
               ),
@@ -41,9 +52,16 @@ class LeaderboardPage extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 SoundManager.playButtonSound();
+                // Return to home and reset game
                 Navigator.popUntil(context, ModalRoute.withName('/'));
               },
-              child: const Text('Restart Game'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+              ),
+              child: const Text(
+                'Restart Game',
+                style: TextStyle(fontSize: 18),
+              ),
             ),
           ],
         ),

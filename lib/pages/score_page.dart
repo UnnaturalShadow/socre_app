@@ -51,10 +51,9 @@ class _ScorePageState extends State<ScorePage> {
 
   void _editCellDialog(Player player, String field) {
     final controller = TextEditingController(
-      text: field == 'bid'
-          ? player.bid.toString()
-          : player.handsWon.toString(),
+      text: field == 'bid' ? player.bid.toString() : player.handsWon.toString(),
     );
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -62,10 +61,9 @@ class _ScorePageState extends State<ScorePage> {
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          onTap: () => controller.selection = TextSelection(
-            baseOffset: 0,
-            extentOffset: controller.text.length,
-          ),
+          autofocus: true,
+          onTap: () => controller.selection =
+              TextSelection(baseOffset: 0, extentOffset: controller.text.length),
         ),
         actions: [
           TextButton(
@@ -78,6 +76,7 @@ class _ScorePageState extends State<ScorePage> {
               setState(() {
                 if (field == 'bid') player.bid = val;
                 if (field == 'hands') player.handsWon = val;
+                ScoreLogic.calculateRoundScores(widget.game.players, handSize);
               });
               Navigator.pop(context);
             },
@@ -92,11 +91,12 @@ class _ScorePageState extends State<ScorePage> {
     final players = widget.game.players;
     final dealer = widget.game.currentDealer;
 
-    return InteractiveViewer(
-      constrained: false,
+    return SingleChildScrollView(
+      controller: _horizontal,
+      scrollDirection: Axis.horizontal,
       child: Column(
         children: [
-          // Fixed top row (player names)
+          // Top row: player names
           Row(
             children: [
               Container(
@@ -109,24 +109,23 @@ class _ScorePageState extends State<ScorePage> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-              ...players.map(
-                    (p) => Container(
-                  width: 120,
-                  height: 50,
-                  alignment: Alignment.center,
-                  color: p == dealer
-                      ? Theme.of(context).colorScheme.primaryContainer
-                      : Theme.of(context).colorScheme.surfaceVariant,
-                  child: Text(
-                    p.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
+              ...players.map((p) => Container(
+                width: 120,
+                height: 50,
+                alignment: Alignment.center,
+                color: p == dealer
+                    ? Theme.of(context).colorScheme.primaryContainer
+                    : Theme.of(context).colorScheme.surfaceVariant,
+                child: Text(
+                  p.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-              ),
+              )),
             ],
           ),
-          // Round rows
-          Expanded(
+          // Rounds
+          SizedBox(
+            height: MediaQuery.of(context).size.height - 200,
             child: Scrollbar(
               controller: _vertical,
               thumbVisibility: true,
@@ -134,55 +133,48 @@ class _ScorePageState extends State<ScorePage> {
                 controller: _vertical,
                 scrollDirection: Axis.vertical,
                 child: Column(
-                  children: List.generate(
-                    widget.game.totalRounds,
-                        (roundIndex) {
-                      final isCurrent =
-                          (roundIndex + 1) == widget.game.currentRound;
-                      return Row(
-                        children: [
-                          Container(
-                            width: 80,
+                  children: List.generate(widget.game.totalRounds, (roundIndex) {
+                    final isCurrent = (roundIndex + 1) == widget.game.currentRound;
+                    return Row(
+                      children: [
+                        // Round number column
+                        Container(
+                          width: 80,
+                          height: 60,
+                          alignment: Alignment.center,
+                          color: isCurrent
+                              ? Theme.of(context).colorScheme.secondaryContainer
+                              : Theme.of(context).colorScheme.surfaceVariant,
+                          child: Text('${roundIndex + 1}'),
+                        ),
+                        // Player cells
+                        ...players.map((p) => GestureDetector(
+                          onTap: () {
+                            if (isCurrent) {
+                              _editCellDialog(p, 'bid');
+                            }
+                          },
+                          child: Container(
+                            width: 120,
                             height: 60,
-                            alignment: Alignment.center,
-                            color: isCurrent
-                                ? Theme.of(context).colorScheme.secondaryContainer
-                                : Theme.of(context).colorScheme.surfaceVariant,
-                            child: Text('${roundIndex + 1}'),
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black26),
+                              color: Theme.of(context).colorScheme.surfaceVariant,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('Bid: ${p.bid}'),
+                                Text('Won: ${p.handsWon}'),
+                                Text('Score: ${p.totalScore}'),
+                              ],
+                            ),
                           ),
-                          ...players.map((p) {
-                            return GestureDetector(
-                              onTap: () {
-                                if (isCurrent) {
-                                  _editCellDialog(p, 'bid');
-                                }
-                              },
-                              child: Container(
-                                width: 120,
-                                height: 60,
-                                margin:
-                                const EdgeInsets.symmetric(horizontal: 2),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.black26),
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceVariant,
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text('Bid: ${p.bid}'),
-                                    Text('Won: ${p.handsWon}'),
-                                    Text('Score: ${p.totalScore}'),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ],
-                      );
-                    },
-                  ),
+                        )),
+                      ],
+                    );
+                  }),
                 ),
               ),
             ),
