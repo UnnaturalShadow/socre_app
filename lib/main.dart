@@ -25,16 +25,44 @@ class OHelApp extends StatelessWidget {
         switch (settings.name) {
           case '/':
             return MaterialPageRoute(builder: (_) => const HomePage());
+
           case '/setup':
             return MaterialPageRoute(builder: (_) => const SetupPage());
+
           case '/score':
-            final game = settings.arguments as GameState;
+            final game = settings.arguments;
+            if (game == null || game is! GameState) {
+              return MaterialPageRoute(
+                builder: (_) => Scaffold(
+                  body: Center(
+                    child: Text('Error: No game data found!'),
+                  ),
+                ),
+              );
+            }
             return MaterialPageRoute(builder: (_) => ScorePage(game: game));
+
           case '/leaderboard':
-            final game = settings.arguments as GameState;
+            final game = settings.arguments;
+            if (game == null || game is! GameState) {
+              return MaterialPageRoute(
+                builder: (_) => Scaffold(
+                  body: Center(
+                    child: Text('Error: No game data found!'),
+                  ),
+                ),
+              );
+            }
             return MaterialPageRoute(builder: (_) => LeaderboardPage(game: game));
+
           default:
-            return null;
+            return MaterialPageRoute(
+              builder: (_) => Scaffold(
+                body: Center(
+                  child: Text('Route not found: ${settings.name}'),
+                ),
+              ),
+            );
         }
       },
     );
